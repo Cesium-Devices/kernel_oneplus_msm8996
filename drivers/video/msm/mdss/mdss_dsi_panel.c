@@ -418,6 +418,34 @@ static bool mdss_dsi_panel_get_idle_mode(struct mdss_panel_data *pdata)
 	return ctrl->idle;
 }
 
+int mdss_dsi_panel_set_P3_mode(struct mdss_dsi_ctrl_pdata *ctrl, int level)
+{
+	struct dsi_panel_cmds *P3_on_cmds,*P3_off_cmds;
+
+	P3_on_cmds = &ctrl->P3_on_cmds;
+	P3_off_cmds = &ctrl->P3_off_cmds;
+
+	if(!P3_on_cmds->cmd_cnt){
+		printk("This panel don't support DCI-P3 mode.\n");
+		return -1;
+	}
+
+	if (level){
+		mdss_dsi_panel_cmds_send(ctrl, P3_on_cmds, CMD_REQ_COMMIT);
+		pr_warn("DCI-P3 enabled.\n");
+	} else {
+		mdss_dsi_panel_cmds_send(ctrl, P3_off_cmds, CMD_REQ_COMMIT);
+		pr_warn("DCI-P3 disabled.\n");
+	}
+
+	return 0;
+}
+
+int mdss_dsi_panel_get_P3_mode(struct mdss_dsi_ctrl_pdata *ctrl)
+{
+	return ctrl->P3_mode;
+}
+
 static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 {
 	int rc = 0;
@@ -1244,6 +1272,9 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 
 	/* Ensure low persistence mode is set as before */
 	mdss_dsi_panel_apply_display_setting(pdata, pinfo->persist_mode);
+
+	if (mdss_dsi_panel_get_P3_mode(ctrl))
+		mdss_dsi_panel_set_P3_mode(ctrl, mdss_dsi_panel_get_P3_mode(ctrl));
 
 end:
 	pr_debug("%s:-\n", __func__);
@@ -3119,6 +3150,14 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	rc = mdss_dsi_parse_hdr_settings(np, pinfo);
 	if (rc)
 		return rc;
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->P3_on_cmds,
+		"qcom,mdss-dsi-panel-dci-p3-on-command",
+		"qcom,mdss-dsi-dci-p3-command-state");
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->P3_off_cmds,
+		"qcom,mdss-dsi-panel-dci-p3-off-command",
+		"qcom,mdss-dsi-dci-p3-command-state");
 
 	pinfo->mipi.rx_eot_ignore = of_property_read_bool(np,
 		"qcom,mdss-dsi-rx-eot-ignore");

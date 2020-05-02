@@ -549,6 +549,11 @@ struct mdss_dsi_ctrl_pdata {
 
 	struct dsi_err_container err_cont;
 
+	int  P3_mode;
+	int P3_first_on;
+	struct dsi_panel_cmds P3_on_cmds;
+	struct dsi_panel_cmds P3_off_cmds;
+
 	struct kobject *kobj;
 	int fb_node;
 
@@ -723,6 +728,9 @@ int mdss_dsi_panel_set_night_mode(struct mdss_dsi_ctrl_pdata *ctrl, int level);
 int mdss_dsi_panel_get_night_mode(struct mdss_dsi_ctrl_pdata *ctrl);
 int mdss_dsi_panel_set_oneplus_mode(struct mdss_dsi_ctrl_pdata *ctrl, int level);
 int mdss_dsi_panel_get_oneplus_mode(struct mdss_dsi_ctrl_pdata *ctrl);
+
+int mdss_dsi_panel_set_P3_mode(struct mdss_dsi_ctrl_pdata *ctrl, int level);
+int mdss_dsi_panel_get_P3_mode(struct mdss_dsi_ctrl_pdata *ctrl);
 
 static inline const char *__mdss_dsi_pm_name(enum dsi_pm_type module)
 {
